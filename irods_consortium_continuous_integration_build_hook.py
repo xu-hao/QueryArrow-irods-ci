@@ -132,11 +132,7 @@ def copy_output_packages(irods_build_dir, icommands_build_dir, output_root_direc
     irods_python_ci_utilities.gather_files_satisfying_predicate(
         irods_build_dir,
         irods_python_ci_utilities.append_os_specific_directory(output_root_directory),
-        lambda s:s.endswith(irods_python_ci_utilities.get_package_suffix()))
-    irods_python_ci_utilities.gather_files_satisfying_predicate(
-        icommands_build_dir,
-        irods_python_ci_utilities.append_os_specific_directory(output_root_directory),
-        lambda s:s.endswith(irods_python_ci_utilities.get_package_suffix()))
+        lambda s:s.endswith(irods_python_ci_utilities.get_package_suffix()) and "postgres" in s)
 
 def copy_queryarrow_output_packages(irods_build_dir, output_root_directory):
     irods_python_ci_utilities.gather_files_satisfying_predicate(
