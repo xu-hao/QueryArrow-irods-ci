@@ -13,13 +13,18 @@ import time
 import irods_python_ci_utilities
 
 
-def build(icommands_git_repository, icommands_git_commitish, debug_build, output_root_directory):
+def build(
+    # icommands_git_repository, icommands_git_commitish, debug_build, 
+    output_root_directory):
     install_building_dependencies()
-    irods_build_dir = build_irods(debug_build)
-    install_irods_dev_and_runtime(irods_build_dir)
-    icommands_build_dir = build_icommands(icommands_git_repository, icommands_git_commitish, debug_build)
+    queryarrow_build_dir = build_queryarrow()
+#    irods_build_dir = build_irods(debug_build)
+#    install_irods_dev_and_runtime(irods_build_dir)
+#    icommands_build_dir = build_icommands(icommands_git_repository, icommands_git_commitish, debug_build)
+#    if output_root_directory:
+#        copy_output_packages(irods_build_dir, icommands_build_dir, output_root_directory)
     if output_root_directory:
-        copy_output_packages(irods_build_dir, icommands_build_dir, output_root_directory)
+        copy_queryarrow_output_packages(queryarrow_build_dir, output_root_directory)
 
 def install_building_dependencies():
     irods_python_ci_utilities.install_irods_core_dev_repository()
@@ -32,9 +37,12 @@ def install_building_dependencies():
         "irods-externals-cppzmq4.1-0",
         "irods-externals-jansson2.7-0",
         "irods-externals-libarchive3.1.2-0",
-        "irods-externals-zeromq4-14.1.3-0"
+        "irods-externals-zeromq4-14.1.3-0",
+        "irods-externals-ghc8.0.2-0"
         ])
     install_os_specific_dependencies()
+    os.environ['PATH'] = "{0}:{1}".format('/opt/irods-externals/ghc8.0.2-0/bin', os.environ['PATH'])
+    irods_python_ci_utilities.subprocess_get_output('curl -sSL https://get.haskellstack.org/ | sh', shell=True, cwd=irods_build_dir, check_rc=True)
 
 def install_cmake_and_add_to_front_of_path():
     irods_python_ci_utilities.install_os_packages(['irods-externals-cmake3.5.2-0'])
@@ -61,17 +69,30 @@ def install_os_specific_dependencies_apt():
 
     irods_python_ci_utilities.install_os_packages([
         'fakeroot', 'help2man', 'libbz2-dev', 'libcurl4-gnutls-dev', 'libkrb5-dev', 'libpam0g-dev',
-        'libssl-dev', 'make', 'python-dev', 'unixodbc', 'unixodbc-dev', 'zlib1g-dev',
+        'libssl-dev', 'make', 'python-dev', 'unixodbc', 'unixodbc-dev', 'zlib1g-dev', 'postgresql-server-dev-all', 'libsqlite3-dev'
     ])
 
 def install_os_specific_dependencies_yum():
     packages_to_install = [
         'bzip2-devel', 'curl-devel', 'fakeroot', 'help2man', 'openssl-devel',
-        'pam-devel', 'python-devel', 'unixODBC', 'unixODBC-devel', 'zlib-devel',
+        'pam-devel', 'python-devel', 'unixODBC', 'unixODBC-devel', 'zlib-devel', 'postgresql-devel', 'sqlite-devel'
     ]
     if irods_python_ci_utilities.get_distribution_version_major() == '7':
         packages_to_install.append('mysql++-devel')
     irods_python_ci_utilities.install_os_packages(packages_to_install)
+
+def build_queryarrow():
+    queryarrow_build_dir = tempfile.mkdtemp(prefix='queryarrow_build_dir')
+    logging.getLogger(__name__).info('Using QueryArrow build directory: %s', queryarrow_build_dir)
+    irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/QueryArrow', shell=True, cwd=_build_dir, check_rc=True)
+    queryarrow_source_dir = queryarrow_build_dir + "/QueryArrow"
+    irods_python_ci_utilities.subprocess_get_output('git checkout list', shell=True, cwd=queryarrow_source_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('stack build --system-ghc', shell=True, cwd=queryarrow_source_dir, check_rc=True)
+    queryarrow_package_dir = queryarrow_build_dir + "/package"
+    os.mkdir(queryarrow_package_dir)
+    irods_python_ci_utilities.subprocess_get_output('../QueryArrow/find_dependencies.sh ../QueryArrow', shell=True, cwd=queryarrow_package_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('/opt/irods-externals/cmake3.5.2-0/bin/cpack --config CPackConfig.cmake', shell=True, cwd=queryarrow_package_dir, check_rc=True)
+    return queryarrow_build_dir
 
 def build_irods(debug_build):
     irods_source_dir = os.path.dirname(os.path.realpath(__file__))
@@ -116,6 +137,12 @@ def copy_output_packages(irods_build_dir, icommands_build_dir, output_root_direc
         irods_python_ci_utilities.append_os_specific_directory(output_root_directory),
         lambda s:s.endswith(irods_python_ci_utilities.get_package_suffix()))
 
+def copy_queryarrow_output_packages(irods_build_dir, output_root_directory):
+    irods_python_ci_utilities.gather_files_satisfying_predicate(
+        irods_build_dir + "/package",
+        irods_python_ci_utilities.append_os_specific_directory(output_root_directory),
+        lambda s:s.endswith(irods_python_ci_utilities.get_package_suffix()))
+
 def register_log_handler():
     logging.getLogger().setLevel(logging.INFO)
     logging_handler = logging.StreamHandler(sys.stdout)
@@ -143,6 +170,7 @@ def main():
         install_building_dependencies()
         return
 
+    '''
     if options.debug_build not in ['false', 'true']:
         print('--debug_build must be either "false" or "true"', file=sys.stderr)
         sys.exit(1)
@@ -154,10 +182,14 @@ def main():
     if not options.icommands_git_commitish:
         print('--icommands_git_commitish must be provided', file=sys.stderr)
         sys.exit(1)
+    '''
 
-    build(
-        options.icommands_git_repository, options.icommands_git_commitish,
-        options.debug_build == 'true', options.output_root_directory)
+    build(options.output_root_directory)
+
+#    build(
+#        options.icommands_git_repository, options.icommands_git_commitish,
+#        options.debug_build == 'true', 
+#        options.output_root_directory)
 
 if __name__ == '__main__':
     main()
