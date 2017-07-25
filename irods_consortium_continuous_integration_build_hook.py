@@ -90,7 +90,7 @@ def build_queryarrow():
     queryarrow_package_dir = queryarrow_build_dir + "/package"
     os.mkdir(queryarrow_package_dir)
     irods_python_ci_utilities.subprocess_get_output('../QueryArrow/find_dependencies.sh ../QueryArrow', shell=True, cwd=queryarrow_package_dir, check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output('/opt/irods-externals/cmake3.5.2-0/bin/cpack --config CPackConfig.cmake -G ' + irods_python_ci_utilities.get_package_suffix(), shell=True, cwd=queryarrow_package_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('/opt/irods-externals/cmake3.5.2-0/bin/cpack --config CPackConfig.cmake -G ' + irods_python_ci_utilities.get_package_suffix().upper(), shell=True, cwd=queryarrow_package_dir, check_rc=True)
     return queryarrow_build_dir
 
 def build_irods(debug_build):    
