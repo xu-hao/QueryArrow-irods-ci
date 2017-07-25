@@ -96,7 +96,7 @@ def build_queryarrow():
 def build_irods(debug_build):    
     irods_build_dir = tempfile.mkdtemp(prefix='irods_build_dir')
     irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/temporary-irods-mod', shell=True, cwd=irods_build_dir, check_rc=True)
-    irods_source_dir = irods_build_dir + "/irods"
+    irods_source_dir = irods_build_dir + "/temporary-irods-mod"
     irods_python_ci_utilities.subprocess_get_output('git checkout qalist', shell=True, cwd=irods_source_dir, check_rc=True)
     logging.getLogger(__name__).info('Using iRODS build directory: %s', irods_build_dir)
     if debug_build:
