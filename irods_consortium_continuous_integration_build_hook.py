@@ -41,7 +41,7 @@ def install_building_dependencies():
         ])
     install_os_specific_dependencies()
     os.environ['PATH'] = "{0}:{1}".format('/opt/irods-externals/ghc8.0.2-0/bin', os.environ['PATH'])
-    irods_python_ci_utilities.subprocess_get_output('curl -sSL https://get.haskellstack.org/ | sh', shell=True, cwd=irods_build_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('curl -sSL https://get.haskellstack.org/ | sh', shell=True, check_rc=True)
 
 def install_cmake_and_add_to_front_of_path():
     irods_python_ci_utilities.install_os_packages(['irods-externals-cmake3.5.2-0'])
