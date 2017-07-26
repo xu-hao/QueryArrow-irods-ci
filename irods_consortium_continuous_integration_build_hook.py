@@ -83,7 +83,7 @@ def install_os_specific_dependencies_yum():
 def build_queryarrow():
     queryarrow_build_dir = tempfile.mkdtemp(prefix='queryarrow_build_dir')
     logging.getLogger(__name__).info('Using QueryArrow build directory: %s', queryarrow_build_dir)
-    irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/QueryArrow', shell=True, cwd=_build_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/QueryArrow', shell=True, cwd=queryarrow_build_dir, check_rc=True)
     queryarrow_source_dir = queryarrow_build_dir + "/QueryArrow"
     irods_python_ci_utilities.subprocess_get_output('git checkout list', shell=True, cwd=queryarrow_source_dir, check_rc=True)
     irods_python_ci_utilities.subprocess_get_output('stack build --system-ghc', shell=True, cwd=queryarrow_source_dir, check_rc=True)
