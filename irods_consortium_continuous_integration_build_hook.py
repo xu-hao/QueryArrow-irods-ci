@@ -86,18 +86,26 @@ def build_queryarrow():
     irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/QueryArrow', shell=True, cwd=queryarrow_build_dir, check_rc=True)
     queryarrow_source_dir = queryarrow_build_dir + "/QueryArrow"
     irods_python_ci_utilities.subprocess_get_output('git checkout list', shell=True, cwd=queryarrow_source_dir, check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output('stack build --system-ghc', shell=True, cwd=queryarrow_source_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('stack build --system-ghc --with-gcc /opt/irods-externals/clang3.8-0/bin/clang', shell=True, cwd=queryarrow_source_dir, check_rc=True)
     queryarrow_package_dir = queryarrow_build_dir + "/package"
     os.mkdir(queryarrow_package_dir)
     irods_python_ci_utilities.subprocess_get_output('../QueryArrow/find_dependencies.sh ../QueryArrow', shell=True, cwd=queryarrow_package_dir, check_rc=True)
     irods_python_ci_utilities.subprocess_get_output('/opt/irods-externals/cmake3.5.2-0/bin/cpack --config CPackConfig.cmake -G ' + irods_python_ci_utilities.get_package_suffix().upper(), shell=True, cwd=queryarrow_package_dir, check_rc=True)
     return queryarrow_build_dir
 
+def install_queryarrow(queryarrow_build_dir):
+    irods_python_ci_utilities.install_os_packages_from_files(
+        itertools.chain(
+            glob.glob(os.path.join(queryarrow_build_dir, 'package', 'queryarrow*.{0}'.format(irods_python_ci_utilities.get_package_suffix())))))
+
 def build_irods(debug_build):    
-    irods_build_dir = tempfile.mkdtemp(prefix='irods_build_dir')
-    irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/temporary-irods-mod', shell=True, cwd=irods_build_dir, check_rc=True)
-    irods_source_dir = irods_build_dir + "/temporary-irods-mod"
+    irods_dir = tempfile.mkdtemp(prefix='irods_build')
+    irods_build_dir = os.path.join(irods_dir, "build")
+    os.mkdir(irods_build_dir)
+    irods_python_ci_utilities.subprocess_get_output('git clone https://github.com/xu-hao/temporary-irods-mod', shell=True, cwd=irods_dir, check_rc=True)
+    irods_source_dir = irods_dir + "/temporary-irods-mod"
     irods_python_ci_utilities.subprocess_get_output('git checkout qalist', shell=True, cwd=irods_source_dir, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output('git submodule update --init', shell=True, cwd=irods_source_dir, check_rc=True)
     logging.getLogger(__name__).info('Using iRODS build directory: %s', irods_build_dir)
     if debug_build:
         cmake_build_type = 'Debug'
