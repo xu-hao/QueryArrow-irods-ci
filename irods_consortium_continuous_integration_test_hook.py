@@ -18,6 +18,11 @@ def main():
     output_root_directory = options.output_root_directory
     built_packages_root_directory = options.built_packages_root_directory
     plugin_dir = irods_python_ci_utilities.append_os_specific_directory(built_packages_root_directory)
+    irods_python_ci_utilities.install_os_packages(['irods-externals-ghc8.0.2-0'])
+    if irods_python_ci_utilities.get_irods_platform_string() == "Centos linux_7":
+        irods_python_ci_utilities.install_os_packages(['gmp-devel'])
+    if irods_python_ci_utilities.get_irods_platform_string() == "Ubuntu_16" or irods_python_ci_utilities.get_irods_platform_string() == "Ubuntu_14":
+        irods_python_ci_utilities.install_os_packages(['libgmp-dev'])
     irods_python_ci_utilities.install_os_packages_from_files([os.path.join(plugin_dir, entry) for entry in os.listdir(plugin_dir)])
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', 'setup_queryarrow_database_as_only_database.py', '/var/lib/irods/scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)    
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'chown', 'irodsbuild:external', '/var/lib/irods/scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)    
