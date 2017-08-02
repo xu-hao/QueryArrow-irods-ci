@@ -28,7 +28,7 @@ def main():
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', 'setup_queryarrow_database_as_only_database.py', '/var/lib/irods/scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)    
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'chown', 'irodsbuild:external', '/var/lib/irods/scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)    
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'su', '-', 'irods', '-c', 'python2 scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)
-    p = subprocess.Popen(['sudo', 'su', '-', 'irods', '-c', 'QueryArrowServer /etc/QueryArrow/tdb-plugin-gen-abs.yaml&'])
+    p = subprocess.Popen(['sudo', 'su', '-', 'irods', '-c', 'QueryArrowServer /etc/QueryArrow/tdb-plugin-gen-abs.yaml -v WARNING'])
 
     test_output_file = 'log/test_output.log'
     try:
