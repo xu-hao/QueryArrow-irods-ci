@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import tempfile
+import subprocess
 
 import irods_python_ci_utilities
 
@@ -27,7 +28,7 @@ def main():
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', 'setup_queryarrow_database_as_only_database.py', '/var/lib/irods/scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)    
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'chown', 'irodsbuild:external', '/var/lib/irods/scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)    
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'su', '-', 'irods', '-c', 'python2 scripts/setup_queryarrow_database_as_only_database.py'], check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'su', '-', 'irods', '-c', 'QueryArrowServer /etc/QueryArrow/tdb-plugin-gen-abs.yaml&'], shell=True)
+    p = subprocess.Popen(['sudo', 'su', '-', 'irods', '-c', 'QueryArrowServer /etc/QueryArrow/tdb-plugin-gen-abs.yaml&'])
 
     test_output_file = 'log/test_output.log'
     try:
@@ -38,6 +39,7 @@ def main():
             shutil.copytree(os.path.join(os.path.expanduser('~irods'), 'test-reports'), os.path.join(output_root_directory, 'test-reports'))
             shutil.copytree(os.path.join(os.path.expanduser('~irods'), 'log'), os.path.join(output_root_directory, 'log'))
             shutil.copy(os.path.join(os.path.expanduser('~irods'), test_output_file), output_root_directory)
+#        p.terminate()
 
 if __name__ == '__main__':
     main()
